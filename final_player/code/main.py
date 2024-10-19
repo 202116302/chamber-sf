@@ -4,7 +4,25 @@ from level import Level
 from player import *
 from pygame import joystick
 
+import subprocess
+import os
 
+
+# script_path = os.path.join(os.path.dirname(__file__),  'main.py')
+# subprocess.run(['python', script_path])
+
+# if getattr(sys, 'frozen', False):
+#     base_path = sys._MEIPASS
+# else:
+#     base_path = os.path.dirname(__file__)
+
+
+
+
+subprocess.run(['python', ALL_PATH])
+
+
+# subprocess.run(['python', ALL_PATH])
 class Game:
 	def __init__(self):
 		pygame.init()
@@ -41,8 +59,7 @@ class Game:
 
 
 	def show_start_screen(self):
-		# game splash/start screen
-
+		# game splash/start screene
 		self.screen.fill(GREEN)
 		self.draw_text('Greenhouse', 60, WHITE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4)
 		self.draw_text("Press a key to play",
@@ -62,7 +79,7 @@ class Game:
 				if event.type == pygame.KEYUP:
 					waiting = False
 					self.run()
-				elif event.type == pygame.JOYBUTTONDOWN:
+				elif event.type0  == pygame.JOYBUTTONDOWN:
 					waiting = False
 					self.run()
 

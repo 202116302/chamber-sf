@@ -4,6 +4,7 @@ from support import *
 from timer import Timer
 from realtime_data import Get_data
 from transition import Transition
+import os
 
 
 class Player(pygame.sprite.Sprite):
@@ -133,7 +134,7 @@ class Player(pygame.sprite.Sprite):
 						   'right_water':[],'left_water':[],'up_water':[],'down_water':[]}
 
 		for animation in self.animations.keys():
-			full_path = '../graphics/character/' + animation
+			full_path = os.path.join(ALL_PATH, 'graphics/character/') + animation
 			self.animations[animation] = import_folder(full_path)
 
 	def animate(self,dt):
@@ -197,14 +198,6 @@ class Player(pygame.sprite.Sprite):
 				self.direction = pygame.math.Vector2()
 				self.frame_index = 0
 
-			#  print realtime_data
-			# if key_data:
-			# 	self.timers['data on'].activate()
-			#
-			# if key_data and not self.timers['data on'].active:
-			# 	self.timers['data off'].activate()
-
-
 			# change tool
 			if keys[pygame.K_q] and not self.timers['tool switch'].active:
 				self.timers['tool switch'].activate()
@@ -226,50 +219,91 @@ class Player(pygame.sprite.Sprite):
 				self.selected_seed = self.seeds[self.seed_index]
 
 			if key_enter:
-				# self.toggle_dashboard()
 				collided_interaction_sprite = pygame.sprite.spritecollide(self,self.interaction,False)
 				if collided_interaction_sprite:
-					if collided_interaction_sprite[0].name == 'Trader':
-						self.toggle_shop()
-
-					if collided_interaction_sprite[0].name == "Enter_gh1":
+					# lab interaction 설정하기
+					if collided_interaction_sprite[0].name == "lab":
 						self.sleep = True
-						self.pos_layer = 'mini_chamber'
-						self.to_go = GH1_START[0], GH1_START[1]
+						self.pos_layer = 'lab'
+						# self.to_go = LAB_ENTER[0], LAB_ENTER[1]
+						self.to_go = 2640, 560
 						self.before_go = self.pos.x, self.pos.y
 
-					if collided_interaction_sprite[0].name == "Enter_gh2":
-						self.sleep = True
-						self.pos_layer = 'greenhouse'
-						self.to_go = GH2_START[0], GH2_START[1]
-						self.before_go = self.pos.x, self.pos.y
-
-
-					if collided_interaction_sprite[0].name == "Enter_gh3":
-						self.sleep = True
-						self.pos_layer = 'lab_208'
-						self.to_go = GH3_START[0], GH3_START[1]
-						self.before_go = self.pos.x, self.pos.y
-
-					if collided_interaction_sprite[0].name == "dashboard1" \
-							or collided_interaction_sprite[0].name == "dashboard2" \
-							or collided_interaction_sprite[0].name == "dashboard3":
+					# lab 안 lab_chamber 대시보드 설정
+					if collided_interaction_sprite[0].name == "lab_chamber":
+						self.pos_layer = 'lab_chamber'
 						self.toggle_dashboard()
 
+					# lab 안 lab_api 대시보드 설정
+					if collided_interaction_sprite[0].name == "lab_api":
+						self.pos_layer = 'lab_api'
+						self.toggle_dashboard()
 
-					if collided_interaction_sprite[0].name == "gh1_out":
+					# lab 나가기 설정
+					if collided_interaction_sprite[0].name == "lab_out":
+						self.sleep = True
+						self.to_go = self.before_go
+
+					# greenhouse intertaction 설정하기
+					if collided_interaction_sprite[0].name == "grh":
+						self.sleep = True
+						self.pos_layer = 'grh'
+						self.to_go = GRH_ENTER[0], GRH_ENTER[1]
+						self.before_go = self.pos.x, self.pos.y
+
+					if collided_interaction_sprite[0].name == "grh_api":
+						self.pos_layer = 'grh_api'
+						self.toggle_dashboard()
+
+					if collided_interaction_sprite[0].name == "grh_out":
 						self.sleep = True
 						self.to_go = self.before_go
 
 
-					if collided_interaction_sprite[0].name == "gh2_out":
+					if collided_interaction_sprite[0].name == "buan":
+						self.pos_layer = 'buan_api'
+						self.toggle_dashboard()
+
+					# if collided_interaction_sprite[0].name == "buan_api":
+					# 	self.pos_layer = 'buan_api'
+					# 	self.toggle_dashboard()
+
+					if collided_interaction_sprite[0].name == "buan_out":
 						self.sleep = True
 						self.to_go = self.before_go
 
+					if collided_interaction_sprite[0].name == 'aws_lab':
+						self.pos_layer = 'aws_lab'
+						self.toggle_dashboard()
 
-					if collided_interaction_sprite[0].name == "gh3_out":
-						self.sleep = True
-						self.to_go = self.before_go
+				#
+				# 	if collided_interaction_sprite[0].name == "Enter_gh2":
+				# 		self.sleep = True
+				# 		self.pos_layer = 'greenhouse'
+				# 		self.to_go = GH2_START[0], GH2_START[1]
+				# 		self.before_go = self.pos.x, self.pos.y
+				#
+				#
+				# 	if collided_interaction_sprite[0].name == "Enter_gh3":
+				# 		self.sleep = True
+				# 		self.pos_layer = 'lab_208'
+				# 		self.to_go = GH3_START[0], GH3_START[1]
+				# 		self.before_go = self.pos.x, self.pos.y
+				#
+				#
+				# 	if collided_interaction_sprite[0].name == "gh1_out":
+				# 		self.sleep = True
+				# 		self.to_go = self.before_go
+				#
+				#
+				# 	if collided_interaction_sprite[0].name == "gh2_out":
+				# 		self.sleep = True
+				# 		self.to_go = self.before_go
+				#
+				#
+				# 	if collided_interaction_sprite[0].name == "gh3_out":
+				# 		self.sleep = True
+				# 		self.to_go = self.before_go
 	def get_status(self):
 		# idle
 		if self.direction.magnitude() == 0:

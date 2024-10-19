@@ -12,6 +12,8 @@ from random import randint
 from menu import Menu
 from dashboard import DashBoard
 from realtime_data import Get_data
+import os
+
 
 class Level:
 	def __init__(self, game):
@@ -21,6 +23,7 @@ class Level:
 
 		self.get_data = Get_data()
 
+		self.get_chamber_data = self.get_data.chamber_data()  # ---> 미니챔버 실시간 데이터 로드
 
 		# sprite groups
 		self.all_sprites = CameraGroup()
@@ -31,7 +34,10 @@ class Level:
 		self.all_sprites_greenhouse = CameraGroup()
 		self.all_sprites_map = CameraGroup()
 
-		self.font = pygame.font.Font('../font/LycheeSoda.ttf', 30)
+
+		# self.font = pygame.font.Font('./font/LycheeSoda.ttf', 30)
+		self.font = pygame.font.Font(os.path.join(ALL_PATH, 'font/LycheeSoda.ttf'), 30)
+
 
 		self.soil_layer = SoilLayer(self.all_sprites_map, self.collision_sprites)
 		self.setup()
@@ -52,8 +58,6 @@ class Level:
 		# greenhouse
 		self.gh_active = False
 
-
-
 		# dashboard
 		self.dashboard = DashBoard(self.player, self.toggle_dashboard, self.get_data)
 		self.dashboard_active = False
@@ -65,49 +69,73 @@ class Level:
 		# self.music.play(loops = -1)
 
 		self.player.game = game
-
+		self.lab_error = self.get_data.get_lab_heyhome()
 
 
 	def setup(self):
-		tmx_data = load_pygame('../data/chamber-sf-map.tmx')
+		tmx_data = load_pygame(os.path.join(ALL_PATH, 'data/greenhouse_map.tmx'))
 
-		# greenhouse  -----> 메인 맵에서 온실 사진
-		for x, y, surf in tmx_data.get_layer_by_name('greenhouse').tiles():
-			Generic(
-				pos = (x * TILE_SIZE, y * TILE_SIZE - 366 + 64),
-				surf = pygame.image.load('../graphics/environment/Greenhouse.png'),
-				groups = self.all_sprites_map
-			)
+		# # 맵 로드하기
+		# for x, y, surf in tmx_data.get_layer_by_name('Tree').tiles():
+		# 	print(surf)
+		# 	Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites_map, self.collision_sprites])
 
-		# Fence
-		for x, y, surf in tmx_data.get_layer_by_name('Fence').tiles():
-			Generic((x * TILE_SIZE,y * TILE_SIZE), surf, [self.all_sprites_map, self.collision_sprites])
+		# for x, y, surf in tmx_data.get_layer_by_name('Tile Layer 14').tiles():
+ 		# 	Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites_map, self.collision_sprites])
 
-		# water 
-		water_frames = import_folder('../graphics/water')
-		for x, y, surf in tmx_data.get_layer_by_name('Water').tiles():
-			Water((x * TILE_SIZE,y * TILE_SIZE), water_frames, self.all_sprites_map)
+		# for x, y, surf in tmx_data.get_layer_by_name('lake').tiles():
+		# 	Generic((x * TILE_SIZE,y * TILE_SIZE), surf, [self.all_sprites_map])
 
-		# trees 
-		for obj in tmx_data.get_layer_by_name('Trees'):
-			Tree(
-				pos = (obj.x, obj.y), 
-				surf = obj.image, 
-				groups = [self.all_sprites_map, self.collision_sprites, self.tree_sprites],
-				name = obj.name,
-				player_add = self.player_add)
 
-		# wildflowers 
-		for obj in tmx_data.get_layer_by_name('Decoration'):
-			WildFlower((obj.x, obj.y), obj.image, [self.all_sprites_map, self.collision_sprites])
+		# # greenhouse  -----> 메인 맵에서 온실 사진
+		# for x, y, surf in tmx_data.get_layer_by_name('greenhouse').tiles():
+		# 	Generic(
+		# 		pos = (x * TILE_SIZE, y * TILE_SIZE - 366 + 64),
+		# 		surf = pygame.image.load(os.path.join(ALL_PATH, 'graphics/environment/Greenhouse.png')),
+		# 		groups = self.all_sprites_map
+		# 	)
+		#
+		# # Fence
+		# for x, y, surf in tmx_data.get_layer_by_name('Fence').tiles():
+		# 	Generic((x * TILE_SIZE,y * TILE_SIZE), surf, [self.all_sprites_map, self.collision_sprites])
+		#
+		# # water
+		# water_frames = import_folder(os.path.join(ALL_PATH, os.path.join(ALL_PATH, 'graphics/water')))
+		# for x, y, surf in tmx_data.get_layer_by_name('Water').tiles():
+		# 	Water((x * TILE_SIZE,y * TILE_SIZE), water_frames, self.all_sprites_map)
+		#
+		# # trees
+		# for obj in tmx_data.get_layer_by_name('Trees'):
+		# 	Tree(
+		# 		pos = (obj.x, obj.y),
+		# 		surf = obj.image,
+		# 		groups = [self.all_sprites_map, self.collision_sprites, self.tree_sprites],
+		# 		name = obj.name,
+		# 		player_add = self.player_add)
+		#
+
 
 
 		# collion tiles
 		for x, y, surf in tmx_data.get_layer_by_name('Collision').tiles():
 			Generic((x * TILE_SIZE, y * TILE_SIZE), pygame.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
 
+		# lab 공간 세팅
+		for x, y, surf in tmx_data.get_layer_by_name('Lab Decoration').tiles():
+			Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites_map, self.collision_sprites])
+
+		if int(self.get_chamber_data['temp']) >= 40:
+			for x, y, surf in tmx_data.get_layer_by_name('lab error').tiles():
+				Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites_map])
+
+		if int(self.get_chamber_data['temp']) <= 0:
+			for x, y, surf in tmx_data.get_layer_by_name('lab error2').tiles():
+				Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites_map])
+
+
 		# Player
 		for obj in tmx_data.get_layer_by_name('Player'):
+
 			if obj.name == 'Start':
 				self.player = Player(
 					pos=(obj.x, obj.y),
@@ -117,65 +145,67 @@ class Level:
 					interaction=self.interaction_sprites,
 					soil_layer=self.soil_layer,
 					toggle_shop=self.toggle_shop,
-					toggle_dashboard=self.toggle_dashboard
+					toggle_dashboard=self.toggle_dashboard,
+
 				)
 
-			if obj.name == 'Trader':
+
+			if obj.name == 'lab':
 				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
 
-			if obj.name == 'Enter_gh1':
+			if obj.name == 'lab_chamber':
 				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
 
-			if obj.name == 'Enter_gh2':
+			if obj.name == 'lab_api':
 				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
 
-			if obj.name == 'Enter_gh3':
-				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
-
-			if obj.name == 'gh1_start':
-				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
-
-			if obj.name == 'gh2_start':
-				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
-
-			if obj.name == 'gh3_start':
-				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
-
-			if obj.name == 'gh1_out':
-				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
-
-			if obj.name == 'gh2_out':
-				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
-
-			if obj.name == 'gh3_out':
-				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
-
-			if obj.name == 'dashboard1':
-				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
-
-			if obj.name == 'dashboard2':
-				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
-
-			if obj.name == 'dashboard3':
+			if obj.name == 'lab_out':
 				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
 
 
-		# collion tilese
-		for x, y, surf in tmx_data.get_layer_by_name('Collision').tiles():
-			Generic((x * TILE_SIZE, y * TILE_SIZE), pygame.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
+			if obj.name == 'grh':
+				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
 
-        # wall
-		for x, y, surf in tmx_data.get_layer_by_name('wall').tiles():
+			if obj.name == 'grh_api':
+				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
+
+			if obj.name == 'grh_out':
+				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
+
+
+			if obj.name == 'buan':
+				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
+
+			if obj.name == 'buan_api':
+				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
+
+			if obj.name == 'buan_out':
+				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
+
+
+			if obj.name == 'aws_lab':
+				Interaction((obj.x, obj.y), (obj.width, obj.height), self.interaction_sprites, obj.name)
+
+		for x, y, surf in tmx_data.get_layer_by_name('Grh crop').tiles():
 			Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites_map, self.collision_sprites])
 
+
+		for x, y, surf in tmx_data.get_layer_by_name('Grh Decoration').tiles():
+			Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites_map, self.collision_sprites])
+
+		for x, y, surf in tmx_data.get_layer_by_name('Buan Decoration').tiles():
+			Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites_map, self.collision_sprites])
+
+
+
 		Generic(
-			pos = (0,0),
-			surf = pygame.image.load('../graphics/world/chamber-sf-map.png').convert_alpha(),  # ----> 배경 화면 사진
+			pos = (0, 0),
+			surf = pygame.image.load(os.path.join(ALL_PATH, 'data/greenhouse_map.png')).convert_alpha(),  # ----> 배경 화면 사진
 			groups = self.all_sprites_map,
 			z = LAYERS['ground'])
 
 	def grh_setup(self):
-		tmx_data = load_pygame('../data/chamber-sf-map.tmx')
+		tmx_data = load_pygame(os.path.join(ALL_PATH, 'data/chamber-sf-map.tmx'))
 
 		if self.dashboard.vent_data == 'fan_on':
 			for x,y,surf in tmx_data.get_layer_by_name('Greenhouse Status2').tiles():
@@ -192,7 +222,7 @@ class Level:
 		self.dashboard.have_to_vent = 'off'
 
 	def grh_water_setup(self):
-		tmx_data = load_pygame('../data/chamber-sf-map.tmx')
+		tmx_data = load_pygame(os.path.join(ALL_PATH, 'data/chamber-sf-map.tmx'))
 
 		print(f'grh_water_setup {self.dashboard.water_data}')
 		if self.dashboard.water_data == 'water_on':
@@ -227,6 +257,7 @@ class Level:
 		self.shop_active = not self.shop_active
 
 	def toggle_dashboard(self):
+		# print('after toggle')
 		self.dashboard_active = not self.dashboard_active
 		self.dashboard.index = 0
 
@@ -268,17 +299,10 @@ class Level:
 					Particle(plant.rect.topleft, plant.image, self.all_sprites_map, z = LAYERS['main'])
 					self.soil_layer.grid[plant.rect.centery // TILE_SIZE][plant.rect.centerx // TILE_SIZE].remove('P')
 
-	def first_func(self):
-		print('first_func')
-
-	def second_func(self):
-		print('second_func')
-
-	def third_func(self):
-		print('third_func')
 
 	def run(self,dt):
 		self.display_surface.fill('black')  # ---------> 검은 화면 기본세팅
+
 		# updates
 		if self.shop_active:
 			self.menu.update()
